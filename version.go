@@ -21,6 +21,7 @@ type Version struct {
 	Major int
 	Minor int
 	Patch int
+	empty bool
 }
 
 func must(err error) {
@@ -36,6 +37,9 @@ func MustParse(raw string) *Version {
 }
 
 func Parse(raw string) (*Version, error) {
+	if raw == "" {
+		return &Version{empty: true}, nil
+	}
 	parts := make([]int, 3)
 	submatches := reMainVersion.FindStringSubmatch(raw)
 	if len(submatches) == 0 {
@@ -56,6 +60,9 @@ func Parse(raw string) (*Version, error) {
 }
 
 func (this *Version) String() string {
+	if this.empty {
+		return "*"
+	}
 	return fmt.Sprintf("%d.%d.%d", this.Major, this.Minor, this.Patch)
 }
 
