@@ -1,6 +1,8 @@
 package semver
 
 import (
+	"bytes"
+	"encoding/json"
 	"regexp"
 	"strconv"
 	"strings"
@@ -125,4 +127,21 @@ func (comparators comparators) Valid(v *Version) bool {
 		}
 	}
 	return true
+}
+
+func (this *Range) MarshalJSON() ([]byte, error) {
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(this.String())
+	return buffer.Bytes(), err
+}
+
+func (this *Range) UnmarshalJSON(b []byte) error {
+	v, err := ParseRange(string(b))
+	if err != nil {
+		return err
+	}
+	this.set = v.set
+	return nil
 }

@@ -1,6 +1,8 @@
 package semver
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -63,11 +65,16 @@ func (this *Version) String() string {
 	if this.empty {
 		return "*"
 	}
-	return fmt.Sprintf("%d.%d.%d", this.Major, this.Minor, this.Patch)
+	o := fmt.Sprintf("%d.%d.%d", this.Major, this.Minor, this.Patch)
+	return o
 }
 
 func (this *Version) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + this.String() + `"`), nil
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(this.String())
+	return buffer.Bytes(), err
 }
 
 func (this *Version) UnmarshalJSON(b []byte) error {

@@ -86,9 +86,7 @@ func (c *comparator) String() string {
 		return "*"
 	}
 	var o string
-	if c.eq {
-		o = "="
-	} else if c.gt {
+	if c.gt {
 		o = ">"
 	} else if c.gte {
 		o = ">="
@@ -97,7 +95,7 @@ func (c *comparator) String() string {
 	} else if c.lt {
 		o = "<"
 	}
-	o = o + c.version.String()
+	o = strings.Join([]string{o, c.version.String()}, "")
 	return o
 }
 

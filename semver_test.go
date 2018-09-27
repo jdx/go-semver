@@ -11,6 +11,7 @@ import (
 
 type testJSON struct {
 	Version *Version `json:"version"`
+	Range   *Range   `json:"range"`
 }
 
 func parseJSON(raw string) testJSON {
@@ -19,8 +20,8 @@ func parseJSON(raw string) testJSON {
 	return o
 }
 
-func renderJSON(v *Version) string {
-	bytes, err := json.Marshal(testJSON{Version: v})
+func renderJSON(j *testJSON) string {
+	bytes, err := json.Marshal(j)
 	must(err)
 	return string(bytes)
 }
@@ -188,7 +189,10 @@ func Test(t *testing.T) {
 			g.Assert(versions[1]).Equal(v("1.2.4"))
 			g.Assert(versions[2]).Equal(v("1.4.2"))
 			g.Assert(versions[3]).Equal(v("2.0.0"))
+		})
 
+		g.Xit("encodes/decodes json", func() {
+			g.Assert(parseJSON(renderJSON(&testJSON{Version: v("1.2.3"), Range: r("1.0.0")})).Version).Equal(&Version{})
 		})
 	})
 }
