@@ -8,9 +8,13 @@ import (
 )
 
 var numericIdentifier = `0|[1-9]\d*`
+var nonNumericIdentifier = `\d*[a-zA-Z-][a-zA-Z0-9-]*`
+var buildIdentifier = `[0-9A-Za-z-]+`
+var build = `(?:\+(` + buildIdentifier + `(?:\.` + buildIdentifier + `)*))`
 var mainVersion = `(` + numericIdentifier + `)\.(` + numericIdentifier + `)\.(` + numericIdentifier + `)`
-
-var reNumericIdentifier = regexp.MustCompile(numericIdentifier)
+var prereleaseIdentifier = `(?:` + numericIdentifier + `|` + nonNumericIdentifier + `)`
+var prerelease = `(?:-(` + prereleaseIdentifier + `(?:\.` + prereleaseIdentifier + `)*))`
+var fullPlain = `v?` + mainVersion + prerelease + `?` + build + `?`
 var reMainVersion = regexp.MustCompile(mainVersion)
 
 type Version struct {
@@ -106,7 +110,19 @@ func (a *Version) compare(b *Version) int {
 
 // LT returns true is given version is less than this one
 func (a *Version) LT(b *Version) bool {
-	return a.compare(b) == -1
+	return a.compare(b) < 0
+}
+func (a *Version) LTE(b *Version) bool {
+	return a.compare(b) <= 0
+}
+func (a *Version) GT(b *Version) bool {
+	return a.compare(b) > 0
+}
+func (a *Version) GTE(b *Version) bool {
+	return a.compare(b) >= 0
+}
+func (a *Version) EQ(b *Version) bool {
+	return a.compare(b) == 0
 }
 
 type Versions []*Version
