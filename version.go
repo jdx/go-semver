@@ -20,6 +20,7 @@ var prerelease = `(?:-(` + prereleaseIdentifier + `(?:\.` + prereleaseIdentifier
 var fullPlain = `v?` + mainVersion + prerelease + `?` + build + `?`
 var reMainVersion = regexp.MustCompile(mainVersion)
 var reFull = regexp.MustCompile(`^` + fullPlain + `$`)
+var reNumeric = regexp.MustCompile(`^[0-9]+$`)
 
 type Version struct {
 	Major      int
@@ -62,7 +63,7 @@ func Parse(raw string) (*Version, error) {
 		Major:      parts[0],
 		Minor:      parts[1],
 		Patch:      parts[2],
-		Prerelease: strings.Split(submatches[4], "."),
+		Prerelease: removeEmpty(strings.Split(submatches[4], ".")),
 	}, nil
 }
 
@@ -117,6 +118,32 @@ func (a *Version) compareMinor(b *Version) int {
 func (a *Version) comparePatch(b *Version) int {
 	return compare(a.Patch, b.Patch)
 }
+func (a *Version) comparePre(b *Version) int {
+	if len(a.Prerelease) > 0 && len(b.Prerelease) == 0 {
+		return -1
+	} else if len(a.Prerelease) == 0 && len(b.Prerelease) > 0 {
+		return 1
+	} else if len(a.Prerelease) == 0 && len(b.Prerelease) == 0 {
+		return 0
+	}
+
+	var i = 0
+	for {
+		if len(a.Prerelease)-1 < i && len(b.Prerelease)-1 < i {
+			return 0
+		}
+		if len(a.Prerelease)-1 < i {
+			return -1
+		}
+		if len(b.Prerelease)-1 < i {
+			return 1
+		}
+		if a.Prerelease[i] != b.Prerelease[i] {
+			return compareIdentifiers(a.Prerelease[i], b.Prerelease[i])
+		}
+		i++
+	}
+}
 func (a *Version) compare(b *Version) int {
 	var c int
 	c = a.compareMajor(b)
@@ -127,7 +154,15 @@ func (a *Version) compare(b *Version) int {
 	if c != 0 {
 		return c
 	}
-	return a.comparePatch(b)
+	c = a.comparePatch(b)
+	if c != 0 {
+		return c
+	}
+	c = a.comparePre(b)
+	if c != 0 {
+		return c
+	}
+	return 0
 }
 
 // LT returns true is given version is less than this one
@@ -157,4 +192,42 @@ func (v Versions) Less(a, b int) bool {
 }
 func (v Versions) Swap(a, b int) {
 	v[a], v[b] = v[b], v[a]
+}
+
+func compareIdentifiers(a, b string) int {
+	anum := reNumeric.MatchString(a)
+	bnum := reNumeric.MatchString(b)
+
+	if anum && !bnum {
+		return -1
+	}
+	if !anum && bnum {
+		return 1
+	}
+	if anum && bnum {
+		if atoi(a) < atoi(b) {
+			return -1
+		}
+		if atoi(a) > atoi(b) {
+			return 1
+		}
+		return 0
+	}
+	if a < b {
+		return -1
+	}
+	if a > b {
+		return 1
+	}
+	return 0
+}
+
+func removeEmpty(s []string) []string {
+	o := []string{}
+	for _, s := range s {
+		if s != "" {
+			o = append(o, s)
+		}
+	}
+	return o
 }

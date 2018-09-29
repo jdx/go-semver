@@ -197,12 +197,16 @@ func Test(t *testing.T) {
 
 	})
 
+	assert := func(desc string, expected, actual interface{}) {
+		g.It(desc, func() {
+			g.Assert(actual).Equal(expected)
+		})
+	}
+
 	g.Describe("prerelease", func() {
 		prerelease := func(expected []string, v string) {
 			version := MustParse(v)
-			g.It(fmt.Sprintf("prerelease(%q) == %q", version, expected), func() {
-				g.Assert(version.Prerelease).Equal(expected)
-			})
+			assert(fmt.Sprintf("prerelease(%q) == %q", version, expected), version.Prerelease, expected)
 		}
 		prerelease([]string{"alpha", "1"}, "1.2.2-alpha.1")
 		prerelease([]string{"1"}, "0.6.1-1")
@@ -210,5 +214,42 @@ func Test(t *testing.T) {
 		prerelease([]string{"pre"}, "v0.5.4-pre")
 		prerelease([]string{"alpha", "1"}, "1.2.2-alpha.1")
 		// prerelease([]string{}, "invalid version")
+	})
+
+	g.Describe("GT", func() {
+		test := func(a, b string) {
+			assert(fmt.Sprintf("%s > %s", a, b), MustParse(a).GT(MustParse(b)), true)
+		}
+		test("0.0.0", "0.0.0-foo")
+		test("0.0.1", "0.0.0")
+		test("1.0.0", "0.9.9")
+		test("0.10.0", "0.9.0")
+		test("0.99.0", "0.10.0")
+		test("2.0.0", "1.2.3")
+		// test("v0.0.0", "0.0.0-foo", true)
+		// test("v0.0.1", "0.0.0", true)
+		// test("v1.0.0", "0.9.9", true)
+		// test("v0.10.0", "0.9.0", true)
+		// test("v0.99.0", "0.10.0", true)
+		// test("v2.0.0", "1.2.3", true)
+		// test("0.0.0", "v0.0.0-foo", true)
+		// test("0.0.1", "v0.0.0", true)
+		// test("1.0.0", "v0.9.9", true)
+		// test("0.10.0", "v0.9.0", true)
+		// test("0.99.0", "v0.10.0", true)
+		// test("2.0.0", "v1.2.3", true)
+		test("1.2.3", "1.2.3-asdf")
+		test("1.2.3", "1.2.3-4")
+		test("1.2.3", "1.2.3-4-foo")
+		test("1.2.3-5-foo", "1.2.3-5")
+		test("1.2.3-5", "1.2.3-4")
+		test("1.2.3-5-foo", "1.2.3-5-Foo")
+		test("3.0.0", "2.7.2+asdf")
+		test("1.2.3-a.10", "1.2.3-a.5")
+		test("1.2.3-a.b", "1.2.3-a.5")
+		test("1.2.3-a.b", "1.2.3-a")
+		test("1.2.3-a.b.c.10.d.5", "1.2.3-a.b.c.5.d.100")
+		test("1.2.3-r2", "1.2.3-r100")
+		test("1.2.3-r100", "1.2.3-R2")
 	})
 }
