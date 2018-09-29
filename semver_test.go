@@ -194,5 +194,21 @@ func Test(t *testing.T) {
 		g.Xit("encodes/decodes json", func() {
 			g.Assert(parseJSON(renderJSON(&testJSON{Version: v("1.2.3"), Range: r("1.0.0")})).Version).Equal(&Version{})
 		})
+
+	})
+
+	g.Describe("prerelease", func() {
+		prerelease := func(expected []string, v string) {
+			version := MustParse(v)
+			g.It(fmt.Sprintf("prerelease(%q) == %q", version, expected), func() {
+				g.Assert(version.Prerelease).Equal(expected)
+			})
+		}
+		prerelease([]string{"alpha", "1"}, "1.2.2-alpha.1")
+		prerelease([]string{"1"}, "0.6.1-1")
+		prerelease([]string{"beta", "2"}, "1.0.0-beta.2")
+		prerelease([]string{"pre"}, "v0.5.4-pre")
+		prerelease([]string{"alpha", "1"}, "1.2.2-alpha.1")
+		// prerelease([]string{}, "invalid version")
 	})
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var numericIdentifier = `0|[1-9]\d*`
@@ -18,12 +19,14 @@ var prereleaseIdentifier = `(?:` + numericIdentifier + `|` + nonNumericIdentifie
 var prerelease = `(?:-(` + prereleaseIdentifier + `(?:\.` + prereleaseIdentifier + `)*))`
 var fullPlain = `v?` + mainVersion + prerelease + `?` + build + `?`
 var reMainVersion = regexp.MustCompile(mainVersion)
+var reFull = regexp.MustCompile(`^` + fullPlain + `$`)
 
 type Version struct {
-	Major int
-	Minor int
-	Patch int
-	empty bool
+	Major      int
+	Minor      int
+	Patch      int
+	Prerelease []string
+	empty      bool
 }
 
 func must(err error) {
@@ -39,15 +42,16 @@ func MustParse(raw string) *Version {
 }
 
 func Parse(raw string) (*Version, error) {
+	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return &Version{empty: true}, nil
 	}
 	parts := make([]int, 3)
-	submatches := reMainVersion.FindStringSubmatch(raw)
+	submatches := reFull.FindStringSubmatch(raw)
 	if len(submatches) == 0 {
 		return nil, errors.New("invalid version: " + raw)
 	}
-	for i, s := range submatches[1:] {
+	for i, s := range submatches[1:4] {
 		var err error
 		parts[i], err = strconv.Atoi(s)
 		if err != nil {
@@ -55,9 +59,10 @@ func Parse(raw string) (*Version, error) {
 		}
 	}
 	return &Version{
-		Major: parts[0],
-		Minor: parts[1],
-		Patch: parts[2],
+		Major:      parts[0],
+		Minor:      parts[1],
+		Patch:      parts[2],
+		Prerelease: strings.Split(submatches[4], "."),
 	}, nil
 }
 
@@ -66,6 +71,9 @@ func (this *Version) String() string {
 		return "*"
 	}
 	o := fmt.Sprintf("%d.%d.%d", this.Major, this.Minor, this.Patch)
+	if len(this.Prerelease) > 0 {
+		o = o + "-" + strings.Join(this.Prerelease, ".")
+	}
 	return o
 }
 
