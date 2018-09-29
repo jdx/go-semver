@@ -27,6 +27,7 @@ type Version struct {
 	Minor      int
 	Patch      int
 	Prerelease []string
+	Build      []string
 	empty      bool
 }
 
@@ -64,6 +65,7 @@ func Parse(raw string) (*Version, error) {
 		Minor:      parts[1],
 		Patch:      parts[2],
 		Prerelease: removeEmpty(strings.Split(submatches[4], ".")),
+		Build:      removeEmpty(strings.Split(submatches[5], ".")),
 	}, nil
 }
 
@@ -74,6 +76,9 @@ func (this *Version) String() string {
 	o := fmt.Sprintf("%d.%d.%d", this.Major, this.Minor, this.Patch)
 	if len(this.Prerelease) > 0 {
 		o = o + "-" + strings.Join(this.Prerelease, ".")
+	}
+	if len(this.Build) > 0 {
+		o = o + "+" + strings.Join(this.Build, ".")
 	}
 	return o
 }
