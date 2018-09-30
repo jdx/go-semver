@@ -320,4 +320,16 @@ func Test(t *testing.T) {
 		test("=0.7.x", "0.8.2")
 		test("<0.7.x", "0.7.2")
 	})
+	g.Describe("max satisfying", func() {
+		test := func(v []string, r, expected string) {
+			d := fmt.Sprintf("maxSatisfying(%q, %s) == %s", v, r, expected)
+			g.It(d, func() {
+				g.Assert(MustParseRange(r).MaxSatisfying(MustParseArr(v...)).EQ(MustParse(expected))).IsTrue()
+			})
+		}
+		test([]string{"1.2.3", "1.2.4"}, "1.2", "1.2.4")
+		test([]string{"1.2.4", "1.2.3"}, "1.2", "1.2.4")
+		test([]string{"1.2.3", "1.2.4", "1.2.5", "1.2.6"}, "~1.2.3", "1.2.6")
+		// test([]string{"1.1.0", "1.2.0", "1.2.1", "1.3.0", "2.0.0b1", "2.0.0b2", "2.0.0b3", "2.0.0", "2.1.0"}, "~2.0.0", "2.0.0", true)
+	})
 }

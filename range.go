@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -149,3 +150,17 @@ func (this *Range) UnmarshalJSON(b []byte) error {
 // func (this *Range) GT(v *Version) bool {
 // 	return true
 // }
+
+func (this *Range) MaxSatisfying(input Versions) *Version {
+	v := Versions{}
+	for _, i := range input {
+		if this.Valid(i) {
+			v = append(v, i)
+		}
+	}
+	sort.Sort(v)
+	if len(v) == 0 {
+		return nil
+	}
+	return v[len(v)-1]
+}

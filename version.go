@@ -43,6 +43,14 @@ func MustParse(raw string) *Version {
 	return v
 }
 
+func MustParseArr(raw ...string) []*Version {
+	versions := []*Version{}
+	for _, raw := range raw {
+		versions = append(versions, MustParse(raw))
+	}
+	return versions
+}
+
 func Parse(raw string) (*Version, error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
