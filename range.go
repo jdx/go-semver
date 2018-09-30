@@ -145,3 +145,7 @@ func (this *Range) UnmarshalJSON(b []byte) error {
 	this.set = v.set
 	return nil
 }
+
+// func (this *Range) GT(v *Version) bool {
+// 	return true
+// }
